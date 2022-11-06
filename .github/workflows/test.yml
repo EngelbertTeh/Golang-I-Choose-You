@@ -48,11 +48,11 @@ jobs:
               "fields": [
                 {
                 "type": "mrkdwn",
-                "text": "*Name:*\n Engelbert Teh Fu Chang \n *Email:*\n ${{secrets.DONT_SPAM_MY_INBOX}}"  
+                "text": "*Name:*\n Engelbert Teh Fu Chang \n *Email:*\n ${{secrets.EMAIL}}"  
                 },
                 {
                 "type": "mrkdwn",
-                "text": "*Metriculation:*\n ${{secrets.STUDENT_ID}} \n *Repository:*\n ${{secrets.DATA_BANK}}" 
+                "text": "*Metriculation:*\n ${{secrets.STUDENT_ID}} \n *Repository:*\n ${{secrets.REPO_GO}}" 
               },
               {
                 "type": "mrkdwn",
