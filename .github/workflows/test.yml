@@ -1,0 +1,69 @@
+name: ReleaseWF
+
+on:
+  push: 
+    branches: ['v[0-9]+.[0-9]+'] 
+    # My initial thoughts were to include all digits but exclude any branches that starts with 'v0' - where i could just insert the '!v0' regex
+    # Because based on the examples given, we should exclude v0.1-beta, v0.1.1, feature-01; and include only v1.0, v15.3, v7.09, where the inclusion branches
+    # doesn't start with 'v0' - I concluded that I should not include any branches that start with 'v0' e.g. v0.1 (because maybe v0 is not a major release)
+    # But I did some research and found out v0 can be considered a major release (and not under development)
+    # and pipeline should be triggered if the branchname is within the v<digit>.<digit> constraint, and no where it is stated that v0 should not be incldued.
+    # The main point of me writing this is so that you could kindly change the part ".... it should trigger your workflow but not v0.1-beta.."
+    # where you change v0.1.1 to v1.1.1 or insert an extra exclusion branch e.g., v2.1.0.
+    # This will greatly help future students from the confusion (or maybe it's just me..)
+
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '#norun')}} # only runs workflows when commit message not containing #norun (not case sensitive)
+    steps:
+      - uses: actions/checkout@v3
+      - name: Being Grateful
+        run: echo "thank you sir"
+      - uses: ncipollo/release-action@v1 # creates a release everytime branch name with v<digit>.<digit> is pushed, workflow will generate a tag from
+                                        # the branch ref shortened name, e.g. ref/heads/v1.0 -> v1.0 (this will be used to create the tagname) 
+                                        # this workflow only creates releases for branches on their first push (because releases' names must be unique)
+        with:
+          tag: ${{github.ref_name}} #creates a tag, only using the shortened name of the branch 
+          token: ${{ secrets.GITHUB_TOKEN }} # gives permission to the action workflow to run, and also specify which permissions the token is granted (not included in this workflow)
+      - name: Send Notification To Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with: # using github secrets to store sensitive information
+          payload: |
+           {
+            "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+            "blocks": [
+               {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "DipSA55 CI/CD Assignment Submission"
+                      }
+               },
+                  {
+              "type": "section",
+              "fields": [
+                {
+                "type": "mrkdwn",
+                "text": "*Name:*\n Engelbert Teh Fu Chang \n *Email:*\n ${{secrets.DONT_SPAM_MY_INBOX}}"  
+                },
+                {
+                "type": "mrkdwn",
+                "text": "*Metriculation:*\n ${{secrets.STUDENT_ID}} \n *Repository:*\n ${{secrets.DATA_BANK}}" 
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*Deployment:*\n ${{secrets.RAILWAY_URL}} \n\n <${{secrets.RAILWAY_URL}} |Open Application>"
+              }
+                ]
+               }
+              ]
+            } 
+           
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} 
+      SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
